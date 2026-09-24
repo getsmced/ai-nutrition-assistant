@@ -1,9 +1,12 @@
+from __future__ import annotations
+from email.policy import default
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, date
 
 from pydantic import EmailStr
 from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
+from typing import Literal
 
 
 def get_datetime_utc() -> datetime:
@@ -57,6 +60,8 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
     items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
+    nutrition_profile: NutritionProfile | None = Relationship(back_populates="owner")
+
 
 
 # Properties to return via API, id is always required
@@ -131,3 +136,73 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+Sex = Literal["male", "female"]
+NutritionGoal = Literal ["fat_loss", "muscle_gain", "maintenance"]
+GoalIntensity = Literal ["mild", "moderate", "intense"]
+ActivityLevel = Literal ["sedentary", "light", "moderate", "very_active"]
+
+
+
+class NutritionProfileBase(SQLModel):
+
+    date_of_birth: date
+    sex: Sex
+    height_cm: float = Field(ge=120, le=240)
+    current_weight_kg : float = Field(ge = 35, le = 250)
+    primary_goal : NutritionGoal
+    goal_intensity : GoalIntensity
+    activity_level : ActivityLevel
+    exercises: bool = False
+    exercises_per_week: int | None = Field (default= None, ge=0, le=7)
+    meals_per_day : int = Field (ge=2, le=6)
+    selected_foods: list[str] = Field(default_factory = list)
+    excluded_foods : list[str] = Field(default_factory = list)
+    allergies : list[str] = Field(default_factory= list)
+
+
+class NutritionProfileCreate(NutritionProfileBase):
+    pass
+
+
+class NutritionProfileUpdate(SQLModel):
+    date_of_birth: date | None = None
+    sex: Sex | None = None
+    height_cm: float | None = Field(default=None, ge=120, le=240)
+    current_weight_kg: float | None = Field(default=None, ge=35, le=250)
+
+    primary_goal: NutritionGoal | None = None
+    goal_intensity: GoalIntensity | None = None
+    activity_level: ActivityLevel | None = None
+
+    exercises: bool | None = None
+    exercises_per_week: int | None = Field(default=None, ge=0, le=7)
+
+    meals_per_day: int | None = Field(default=None, ge=2, le=6)
+
+    selected_foods: list[str] | None = None
+    excluded_foods: list[str] | None = None
+    allergies: list[str] | None = None
+
+
+
+class NutritionProfile(NutritionProfileBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id",
+        nullable=False,
+        unique=True,
+        ondelete="CASCADE",
+    )
+    owner: User | None = Relationship(back_populates="nutrition_profile")
+
+
+class NutritionProfilePublic(NutritionProfileBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    created_at: datetime | None = None
