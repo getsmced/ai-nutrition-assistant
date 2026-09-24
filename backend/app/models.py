@@ -139,9 +139,9 @@ class NewPassword(SQLModel):
 
 
 Sex = Literal["male", "female"]
-NutritionGoal = Literal ["fat_loss", "muscle_gain", "maintenance"]
-GoalIntensity = Literal ["mild", "moderate", "intense"]
-ActivityLevel = Literal ["sedentary", "light", "moderate", "very_active"]
+NutritionGoal = Literal["fat_loss", "muscle_gain", "maintenance"]
+GoalIntensity = Literal["mild", "moderate", "intense"]
+ActivityLevel = Literal["sedentary", "light", "moderate", "very_active"]
 
 
 
@@ -157,9 +157,9 @@ class NutritionProfileBase(SQLModel):
     exercises: bool = False
     exercises_per_week: int | None = Field (default= None, ge=0, le=7)
     meals_per_day : int = Field (ge=2, le=6)
-    selected_foods: list[str] = Field(default_factory = list)
-    excluded_foods : list[str] = Field(default_factory = list)
-    allergies : list[str] = Field(default_factory= list)
+    selected_foods: list[str] = Field(default_factory=list, sa_type=JSON)
+    excluded_foods: list[str] = Field(default_factory=list, sa_type=JSON)
+    allergies: list[str] = Field(default_factory=list, sa_type=JSON)
 
 
 class NutritionProfileCreate(NutritionProfileBase):
@@ -180,15 +180,17 @@ class NutritionProfileUpdate(SQLModel):
     exercises_per_week: int | None = Field(default=None, ge=0, le=7)
 
     meals_per_day: int | None = Field(default=None, ge=2, le=6)
-    selected_foods: list[str] = Field(default_factory=list, sa_type=JSON)
-    excluded_foods: list[str] = Field(default_factory=list, sa_type=JSON)
-    allergies: list[str] = Field(default_factory=list, sa_type=JSON)
+    selected_foods: list[str] | None = None
+    excluded_foods: list[str] | None = None
+    allergies: list[str] | None = None
+
 
 
 
 
 
 class NutritionProfile(NutritionProfileBase, table=True):
+    __tablename__ = "nutrition_profile"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
