@@ -2,6 +2,7 @@ from __future__ import annotations
 from email.policy import default
 import uuid
 from datetime import UTC, datetime, date
+from enum import Enum
 
 from pydantic import EmailStr
 from sqlalchemy import DateTime , JSON
@@ -138,10 +139,28 @@ class NewPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
-Sex = Literal["male", "female"]
-NutritionGoal = Literal["fat_loss", "muscle_gain", "maintenance"]
-GoalIntensity = Literal["mild", "moderate", "intense"]
-ActivityLevel = Literal["sedentary", "light", "moderate", "very_active"]
+class Sex(str, Enum):
+    male = "male"
+    female = "female"
+
+
+class NutritionGoal(str, Enum):
+    fat_loss = "fat_loss"
+    muscle_gain = "muscle_gain"
+    maintenance = "maintenance"
+
+
+class GoalIntensity(str, Enum):
+    mild = "mild"
+    moderate = "moderate"
+    intense = "intense"
+
+
+class ActivityLevel(str, Enum):
+    sedentary = "sedentary"
+    light = "light"
+    moderate = "moderate"
+    very_active = "very_active"
 
 
 
@@ -194,7 +213,7 @@ class NutritionProfile(NutritionProfileBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
+        sa_type=DateTime(timezone=True), 
     )
     owner_id: uuid.UUID = Field(
         foreign_key="user.id",
