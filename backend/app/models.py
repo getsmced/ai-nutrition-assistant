@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime, date
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime , JSON
 from sqlmodel import Field, Relationship, SQLModel
 from typing import Literal
 
@@ -180,10 +180,11 @@ class NutritionProfileUpdate(SQLModel):
     exercises_per_week: int | None = Field(default=None, ge=0, le=7)
 
     meals_per_day: int | None = Field(default=None, ge=2, le=6)
+    selected_foods: list[str] = Field(default_factory=list, sa_type=JSON)
+    excluded_foods: list[str] = Field(default_factory=list, sa_type=JSON)
+    allergies: list[str] = Field(default_factory=list, sa_type=JSON)
 
-    selected_foods: list[str] | None = None
-    excluded_foods: list[str] | None = None
-    allergies: list[str] | None = None
+
 
 
 
