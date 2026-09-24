@@ -4,6 +4,81 @@ This file records product and technical decisions that should guide implementati
 
 ---
 
+## 2026-09-24 — MVP Nutrition Profile Modeling Scope
+
+### Decision
+
+The first nutrition profile model will be intentionally small and focused.
+
+The MVP profile should collect:
+
+- Date of birth
+- Sex
+- Height
+- Current weight
+- Primary nutrition goal
+- Goal intensity
+- Daily activity level
+- Whether the user exercises
+- Exercise sessions per week
+- Meals per day
+- Selected foods
+- Excluded foods
+- Free-text allergies
+
+### Type Aliases
+
+The first fixed-value aliases are:
+
+```python
+Sex = Literal["male", "female"]
+NutritionGoal = Literal["fat_loss", "muscle_gain", "maintenance"]
+GoalIntensity = Literal["mild", "moderate", "intense"]
+ActivityLevel = Literal["sedentary", "light", "moderate", "very_active"]
+```
+
+### Postponed
+
+Do not add these to the MVP model yet:
+
+- `DietaryPattern`
+- fixed `Allergen` literal lists
+- detailed `ExerciseType`
+- `CookingSkill`
+- `BudgetLevel`
+
+### Rationale
+
+The first profile should support the earliest useful calculation and planning workflow without becoming a large form too early.
+
+Foods should be represented as stable IDs in lists such as `selected_foods` and `excluded_foods`. The available food choices belong in a separate food catalog, not in huge `Literal` definitions inside `models.py`.
+
+Allergies should be free-text strings for now because users may enter natural Greek descriptions. Later, a validation or agent step can normalize those strings into internal allergen and forbidden-food concepts.
+
+---
+
+## 2026-09-24 — Documentation-Only Assistant Rule
+
+### Decision
+
+The assistant may only edit documentation files in the `docs/` directory, and only to record project progress, decisions, handoff notes, or explanations requested by the user.
+
+The assistant must not edit:
+
+- backend code,
+- frontend code,
+- migrations,
+- infrastructure files,
+- dependency files,
+- generated files,
+- configuration files outside `docs/`.
+
+### Rationale
+
+The user wants to write all implementation code manually as a learning exercise. The assistant's role is to explain, guide, review snippets/screenshots, and keep documentation up to date.
+
+---
+
 ## 2026-09-22 — Build a Guarded Multi-Agent Nutrition Planning System
 
 ### Decision
@@ -89,4 +164,4 @@ The Generate action means:
 4. If the profile passes validation, calculate targets and generate the meal plan.
 5. Present a default plan, with equivalent alternatives available for each meal.
 
-For MVP, avoid overwhelming the user with too many alternatives at once. Prefer one default weekly plan and a "replace meal" action that returns three equivalent options.
+For MVP, avoid overwhelming the user with too many alternatives at once. Prefer one default plan and a "replace meal" action that returns three equivalent options.
