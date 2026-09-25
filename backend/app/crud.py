@@ -4,7 +4,7 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+from app.models import Item, ItemCreate, User, UserCreate, UserUpdate, NutritionProfile, NutritionProfileCreate,NutritionProfileUpdate
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -66,3 +66,36 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -
     session.commit()
     session.refresh(db_item)
     return db_item
+
+
+
+def create_nutrition_profile(*, session : Session, profile_in: NutritionProfileCreate, owner_id: uuid.UUID) -> NutritionProfile :
+    db_profile = NutritionProfile.model_validate(profile_in, update= {"owner_id": owner_id})
+    session.add(db_profile)
+    session.commit()
+    session.refresh(db_profile)
+    return db_profile
+
+def get_nutrition_profile_by_owner(
+    *,
+    session: Session,
+    owner_id: uuid.UUID,
+) -> NutritionProfile | None:
+    statement = select(NutritionProfile).where(
+        NutritionProfile.owner_id == owner_id
+    )
+    profile = session.exec(statement).first()
+    return profile
+
+def update_nutrition_profile(
+    *,
+    session: Session,
+    db_profile: NutritionProfile,
+    profile_in: NutritionProfileUpdate,
+) -> NutritionProfile:
+    profile_data = profile_in.model_dump(exclude_unset=True)
+    db_profile.sqlmodel_update(profile_data)
+    session.add(db_profile)
+    session.commit()
+    session.refresh(db_profile)
+    return db_profile
